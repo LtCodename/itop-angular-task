@@ -34,9 +34,9 @@ export class AppComponent {
     if (this.form.valid) {
       this.messageControl("Form was successfully submitted.");
       this.submitsCounter ++;
-      this.validateEmail();
+      this.saveEmailToLocalStorage();
     } else {
-      this.messageControl("Invalid input!", this.form.valid);
+      this.messageControl("Invalid input!", true);
     }
 
     //disable forn after nth attempt
@@ -49,25 +49,26 @@ export class AppComponent {
 
   messageControl(msg: string, err: boolean = false) {
     this.showMessage = true;
-    this.message = msg;
+
     if (err) {
       this.invalid = true;
 
-      setTimeout(() => {
-        this.invalid = false;
-      }, 2000);
     }
+
+    this.message = msg;
 
     setTimeout(() => {
       this.showMessage = false;
+      this.invalid = false;
     }, 2000);
   }
 
   validateEmail(): boolean {
     const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    if (re.test(String(this.form.controls['email'].value).toLowerCase())) {
-      localStorage.setItem(Date.now().toString(), this.form.controls['email'].value);
-    }
     return re.test(String(this.form.controls['email'].value).toLowerCase());
+  }
+
+  saveEmailToLocalStorage() {
+    localStorage.setItem(Date.now().toString(), this.form.controls['email'].value);
   }
 }
