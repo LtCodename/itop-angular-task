@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { fromEvent } from 'rxjs';
+import { bufferCount } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -12,12 +14,21 @@ export class AppComponent {
   message: string = "";
   showMessage: boolean = false;
   invalid: boolean = false;
-  submitsCounter: number = 0;
 
   constructor(fb: FormBuilder) {
     this.form = fb.group({
       email: ['', [Validators.required]],
       passwordCustomField: ['', [Validators.required]]
+    });
+  }
+
+  ngAfterViewInit() {
+    const form = document.getElementsByTagName('form');
+    const source = fromEvent(form, 'submit');
+    const bufferThree = source.pipe(bufferCount(3));
+    const subscribe = bufferThree.subscribe(() => {
+      this.form.controls['email'].disable();
+      this.form.controls['passwordCustomField'].disable();
     });
   }
 
@@ -33,17 +44,9 @@ export class AppComponent {
     //check if data in form is valid, show simple messages
     if (this.form.valid) {
       this.messageControl("Form was successfully submitted.");
-      this.submitsCounter ++;
       this.saveEmailToLocalStorage();
     } else {
       this.messageControl("Invalid input!", true);
-    }
-
-    //disable forn after nth attempt
-    if (this.submitsCounter >= 3) {
-      this.submitsCounter = 0;
-      this.form.controls['email'].disable();
-      this.form.controls['passwordCustomField'].disable();
     }
   }
 
