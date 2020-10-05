@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { fromEvent } from 'rxjs';
-import { bufferCount } from 'rxjs/operators';
+import { fromEvent, from } from 'rxjs';
+import { bufferCount, filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -23,6 +23,7 @@ export class AppComponent {
   }
 
   ngAfterViewInit() {
+    //RxJS: Task 5
     const form = document.getElementsByTagName('form');
     const source = fromEvent(form, 'submit');
     const bufferThree = source.pipe(bufferCount(3));
@@ -35,16 +36,15 @@ export class AppComponent {
   onSubmit() {
     this.message = "";
 
-    //Abort function if email is not conventional
-    if (!this.validateEmail()) {
-      this.messageControl("Email is broken!", true);
-      return;
-    }
+    //RxJS: Task 4
+    const emailSource = from([this.form.controls['email'].value]);
+    const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const ex = emailSource.pipe(filter(mail => re.test(String(mail).toLowerCase())));
+    const sub = ex.subscribe(val => localStorage.setItem(Date.now().toString(), val));
 
     //check if data in form is valid, show simple messages
     if (this.form.valid) {
       this.messageControl("Form was successfully submitted.");
-      this.saveEmailToLocalStorage();
     } else {
       this.messageControl("Invalid input!", true);
     }
@@ -64,14 +64,5 @@ export class AppComponent {
       this.showMessage = false;
       this.invalid = false;
     }, 2000);
-  }
-
-  validateEmail(): boolean {
-    const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(String(this.form.controls['email'].value).toLowerCase());
-  }
-
-  saveEmailToLocalStorage() {
-    localStorage.setItem(Date.now().toString(), this.form.controls['email'].value);
   }
 }
